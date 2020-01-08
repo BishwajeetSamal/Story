@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 This is best time, on master git adfkjhekfjhsdkjf 
+=======
+This is best time,dsbdhjsgjnsbdjhgdajfbdshkf,jmnsdhf,sdmhfj,mdsnhfj,ndsbhgfjk,ndsbvhjkn,bhjkn,mchsjlkcnbjk.mnbjklsbhjsn,bm 
+>>>>>>> alien-plot
