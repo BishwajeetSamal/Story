@@ -1,5 +1,136 @@
-<<<<<<< HEAD
-This is best time, on master git adfkjhekfjhsdkjf 
-=======
-This is best time,dsbdhjsgjnsbdjhgdajfbdshkf,jmnsdhf,sdmhfj,mdsnhfj,ndsbhgfjk,ndsbvhjkn,bhjkn,mchsjlkcnbjk.mnbjklsbhjsn,bm 
->>>>>>> alien-plot
+func Profile(w http.ResponseWriter, r *http.Request) {
+
+	log.Println(r.Method)
+	log.Println(r)
+	log.Println(w)
+
+	if r.Method == "POST" {
+		err := r.ParseForm()
+		if err != nil {
+			log.Println(err)
+		}
+
+		// auth, err := Db.authentication.GetUserByEmail(r.FormValue("profile_email"))
+		log.Println("auth")
+		log.Println(r.FormValue("profile_full_name"))
+		// log.Println(auth.Email)
+		// log.Println(auth.Profile)
+		// if auth.Profile == " " {
+		// 	log.Println(auth.Profile)
+		// }
+
+		// var str string
+		// r.ParseMultipartForm(10 << 20)
+		// file, handler, err := r.FormFile("image_upload")
+		// log.Println(file)
+		// if err != nil {
+		// 	fmt.Println("Error Retrieving File from form-data !")
+		// 	fmt.Println(err)
+		// 	return
+		// }
+		// defer file.Close()
+		// fmt.Printf("Uploaded File:%+v\n", handler.Filename)
+		// fmt.Printf("File Size:%+v\n", handler.Size)
+		// fmt.Printf("MIME Header:%+v\n", handler.Header)
+		// str = "*"
+		// concatenated := fmt.Sprintf("%s%+v", str, handler.Filename)
+		// tempFile, err := ioutil.TempFile("assets/img/profile_attachment", concatenated)
+		// log.Println(tempFile.Name())
+		// file_name := strings.Replace(tempFile.Name(), "assets/img/profile_attachment/", "", -1)
+		// fmt.Printf("%s\n", file_name)
+		// if err != nil {
+		// 	fmt.Println(err)
+		// 	return
+		// }
+		// defer tempFile.Close()
+		// fileBytes, err := ioutil.ReadAll(file)
+		// if err != nil {
+
+		// 	fmt.Println(err)
+		// }
+		// tempFile.Write(fileBytes)
+		file_name := "fgdfg.png"
+		// updatedPassword := hashAndSalt([]byte(r.Form.Get("password")))
+		//fetch if email already exists start
+		log.Println(r.FormValue("user_id"), r.FormValue("profile_full_name"), r.FormValue("profile_mobile"), r.FormValue("profile_hotel"), r.FormValue("profile_new_password"), file_name)
+		resp, _ := Db.authentication.UpdateUser(r.FormValue("user_id"), r.FormValue("profile_full_name"), r.FormValue("profile_mobile"), r.FormValue("profile_hotel"), r.FormValue("profile_new_password"), file_name)
+		log.Println("-----------Update User resp start------------")
+		log.Println(resp)
+		log.Println("-----------Update User resp end------------")
+		log.Println(resp)
+		if resp == true {
+
+			// trying to update cookies after updating the profile
+			user_email := utility.SessionGet(r, "email").(string)
+			auth, err := Db.authentication.GetUserByEmail(user_email)
+			if err != nil {
+				log.Println("GetUserByEmail Error")
+				log.Println(err)
+			}
+			user_id := strconv.FormatInt(int64(auth.Id), 10)
+			var c_d = "username--" + auth.Name + "$$email--" + auth.Email + "$$user_type--" + auth.User_type + "$$user_id--" + user_id + "$$mobile--" + auth.Phone + "$$profile--" + auth.Profile + "$$hotel--" + auth.Hotel
+
+			log.Println(c_d)
+
+			expires := time.Now().AddDate(1, 0, 0)
+			log.Println("Domain Name")
+			log.Println(utility.Config["domain"])
+
+			ck := http.Cookie{
+				Name:    "alanzone-cookie-data",
+				Domain:  utility.Config["domain"],
+				Path:    "/",
+				Expires: expires,
+				Value:   c_d,
+			}
+			// write the cookie to response
+			http.SetCookie(w, &ck)
+
+			data := make(map[string]string)
+			data["header"] = "Thanks !"
+			data["type"] = "success"
+			data["message"] = "Update User Details!"
+			utility.View.ExecuteTemplate(w, "flash", data)
+		} else {
+			data := make(map[string]string)
+			data["header"] = "Sorry !"
+			data["type"] = "danger"
+			data["message"] = "User Details not Updted!"
+			utility.View.ExecuteTemplate(w, "flash", data)
+		}
+
+		//fetch is email already exists end
+
+	}
+	utility.View.ExecuteTemplate(w, "profile", nil)
+}
+func Check_previous_pass(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		err := r.ParseForm()
+		if err != nil {
+			log.Println("Form parsing failed !")
+		}
+		auth, err := Db.authentication.GetUserByEmail(r.FormValue("email"))
+		log.Println(auth)
+		if err != nil {
+			log.Println(err)
+		}
+		match := bcrypt.CompareHashAndPassword([]byte(auth.Password), []byte(r.FormValue("prev_password")))
+		if match != nil {
+			log.Println("Password match has failed")
+			// Password match has failed
+			json, _ := json.Marshal(false)
+
+			w.Write([]byte(json))
+
+		} else {
+
+			log.Println("Match - Login Successfully!")
+
+			json, _ := json.Marshal(true)
+
+			w.Write([]byte(json))
+		}
+
+	}
+}
